@@ -1,9 +1,12 @@
 #include <algorithm>
 #include <iostream>
 #include <limits>
+#include <ostream>
 #include <utility>
 using namespace std;
-
+// se puede solo usar una funcion en vez de tener aux y la normal
+// toca mejorar la funcion heuristica
+const int  profundidad= 2;
 // Función para imprimir el tablero
 void imprimirTablero(char tablero[3][3]) {
     cout << "  0 1 2" << endl;
@@ -42,33 +45,80 @@ bool verificarGanador(char tablero[3][3], char jugador) {
 
     return false; // Nadie ha ganado todavía
 }
-
+//verificar estas funciones para mejorar la funcion euristica
+int evalLine(int countX, int countO) {
+    if (countX == 3) {
+        return 100;
+    } else if (countO == 3) {
+        return -100;
+    } else if (countX == 2 && countO == 0) {
+        return 10;
+    } else if (countX == 0 && countO == 2) {
+        return -10;
+    } else {
+        return 0;
+    }
+}
 int funcionheuristica(char tablero[][3],char jugador,int depth){
-  if(verificarGanador(tablero, 'X')){
-    return 100 + depth;
+ 
+if (verificarGanador(tablero, 'X')) {
+        return 100 - depth;
+    } else if (verificarGanador(tablero, 'O')) {
+        return depth - 100;
+    }
 
-  }else if (verificarGanador(tablero, 'O')) {
-    return depth-100;
-  }
-  else {
-   // Evaluate the board based on the number of player's symbols in rows, columns, and diagonals
-        int score = 0;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if (tablero[i][j] == jugador) {
-                    score += 1;
-                } else if (tablero[i][j] != ' ') {
-                    score -= 1;
-                }
+    // Evaluate the board based on the number of player's symbols in rows, columns, and diagonals
+    int score = 0;
+
+    // Rows and columns
+    for (int i = 0; i < 3; i++) {
+        int rowCountX = 0, colCountX = 0, rowCountO = 0, colCountO = 0;
+        for (int j = 0; j < 3; j++) {
+            if (tablero[i][j] == 'X') {
+                rowCountX++;
+            } else if (tablero[i][j] == 'O') {
+                rowCountO++;
+            }
+
+            if (tablero[j][i] == 'X') {
+                colCountX++;
+            } else if (tablero[j][i] == 'O') {
+                colCountO++;
             }
         }
-        if(jugador == '0'){
-          return -1*score;
-    }
-        return score;
-  }
-}
 
+        score += evalLine(rowCountX, rowCountO);
+        score += evalLine(colCountX, colCountO);
+    }
+
+    // Diagonals
+    int diagCountX1 = 0, diagCountO1 = 0, diagCountX2 = 0, diagCountO2 = 0;
+    for (int i = 0; i < 3; i++) {
+        if (tablero[i][i] == 'X') {
+            diagCountX1++;
+        } else if (tablero[i][i] == 'O') {
+            diagCountO1++;
+        }
+
+        if (tablero[i][2 - i] == 'X') {
+            diagCountX2++;
+        } else if (tablero[i][2 - i] == 'O') {
+            diagCountO2++;
+        }
+    }
+
+    score += evalLine(diagCountX1, diagCountO1);
+    score += evalLine(diagCountX2, diagCountO2);
+
+    if (jugador == 'O') {
+        return -score;
+    }
+
+    return score;
+
+
+}
+//HASTA AQUI TOCA MEJOAR
 
 
 
@@ -76,6 +126,8 @@ int minmaxAux(char tablero[][3] , int depth, bool maximizar, std::pair<int,int> 
 
 
   if(depth == 0 || verificarGanador(tablero, jugador)){
+    //std::cout<<"la matriz en caso recursivo es"<<"\n";
+    // imprimirTablero(tablero);
     return funcionheuristica(tablero, jugador, depth); 
   }
 
@@ -130,36 +182,27 @@ int minmaxAux(char tablero[][3] , int depth, bool maximizar, std::pair<int,int> 
   
 }
 
+pair<int, int> mejorJugada(char tablero[3][3], char jugador) {
+    int mejorHeuristica = (jugador == 'X') ? std::numeric_limits<int>::min() : std::numeric_limits<int>::max();
+    pair<int, int> mejorMovimiento = {-1, -1};
 
-std::pair<int, int> miniMax(char tablero[3][3] , int depth, bool maximizar){
+    for (int fila = 0; fila < 3; fila++) {
+        for (int columna = 0; columna < 3; columna++) {
+            if (tablero[fila][columna] == ' ') {
+                tablero[fila][columna] = jugador;
+                int heuristica = minmaxAux(tablero, profundidad - 1, (jugador == 'X' ? false : true), pair(fila, columna), jugador);
 
-  std::pair<int,int> bestMove = pair(-1,-1); 
-  int mejorHeuristica = std::numeric_limits<int>::min();
+                if ((jugador == 'X' && heuristica > mejorHeuristica) || (jugador == 'O' && heuristica < mejorHeuristica)) {
+                    mejorHeuristica = heuristica;
+                    mejorMovimiento = {fila, columna};
+                }
 
-  //encontrar jugadas posibles
-  for(int fila = 0 ; fila < 3 ;fila ++){
-
-    for(int columna = 0;columna<3;columna++){
-      if(tablero[fila][columna]== ' '){
-
-        tablero[fila][columna] = 'X';
-        //maybe cambiar el depth -1 por ahora no se
-        int pHeuristica = minmaxAux(tablero,depth-1,maximizar,pair(fila,columna),'X');
-        tablero[fila][columna] = ' ';
-
-        if(pHeuristica>mejorHeuristica){
-          mejorHeuristica = pHeuristica;
-          bestMove.first = fila;
-          bestMove.second = columna;
+                tablero[fila][columna] = ' ';
+            }
         }
-
-      }
     }
 
-  }
-
- 
-  return bestMove;
+    return mejorMovimiento;
 }
 
 // Función principal del juego
@@ -175,10 +218,11 @@ int main() {
       imprimirTablero(tablero);
 
       if(turnos %2 ==0){
-        
-        pair mejorJugada = miniMax(tablero,2,true);
-        fila = mejorJugada.first;
-        columna = mejorJugada.second;
+                    // Computer's turn (X)
+            cout << "Turno del jugador " << jugadorActual << "\n";
+            pair<int, int> mejorJugad = mejorJugada(tablero, jugadorActual);
+            fila = mejorJugad.first;
+            columna = mejorJugad.second;
       }
       else{
         // Solicitar movimiento al jugador
