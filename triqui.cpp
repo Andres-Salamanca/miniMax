@@ -141,8 +141,8 @@ int minmaxAux(char tablero[][3] , int depth, bool maximizar, std::pair<int,int> 
       for(int columna = 0 ;columna<3;columna++){
         if(tablero[fila][columna] == ' '){
 
-          tablero[fila][columna] = 'O';
-          int heuri = minmaxAux(tablero,depth-1,false,pair(fila,columna),'O');
+          tablero[fila][columna] = 'X';
+          int heuri = minmaxAux(tablero,depth-1,false,pair(fila,columna),'X');
           mejorHeuri = std::max(mejorHeuri,heuri);
           tablero[fila][columna] = ' ';
         }
@@ -165,8 +165,8 @@ int minmaxAux(char tablero[][3] , int depth, bool maximizar, std::pair<int,int> 
 
         if(tablero[fila][columna] == ' '){
 
-          tablero[fila][columna] = 'X';
-          int heuri = minmaxAux(tablero,depth-1,true,pair(fila,columna),'X');
+          tablero[fila][columna] = 'O';
+          int heuri = minmaxAux(tablero,depth-1,true,pair(fila,columna),'O');
           mejorHeuri = std::min(mejorHeuri,heuri);
           tablero[fila][columna] = ' ';
 
