@@ -61,16 +61,16 @@ int evalLine(int countX, int countO) {
 }
 int funcionheuristica(char tablero[][3],char jugador,int depth){
  
-if (verificarGanador(tablero, 'X')) {
+  if (verificarGanador(tablero, 'X')) {
         return 100 - depth;
     } else if (verificarGanador(tablero, 'O')) {
         return depth - 100;
     }
 
-    // Evaluate the board based on the number of player's symbols in rows, columns, and diagonals
+    // Evalúa el tablero según la cantidad de símbolos del jugador en filas, columnas y diagonales.
     int score = 0;
 
-    // Rows and columns
+    //contar columnas y filas 
     for (int i = 0; i < 3; i++) {
         int rowCountX = 0, colCountX = 0, rowCountO = 0, colCountO = 0;
         for (int j = 0; j < 3; j++) {
@@ -91,7 +91,7 @@ if (verificarGanador(tablero, 'X')) {
         score += evalLine(colCountX, colCountO);
     }
 
-    // Diagonals
+    //contar diagonales 
     int diagCountX1 = 0, diagCountO1 = 0, diagCountX2 = 0, diagCountO2 = 0;
     for (int i = 0; i < 3; i++) {
         if (tablero[i][i] == 'X') {
